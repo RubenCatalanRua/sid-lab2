@@ -3,8 +3,9 @@ import numpy as np
 import random
 import time
 import pandas as pd
+import sys
 
-from utils import draw_rewards, print_policy_for_taxi_env
+from utils import save_rewards_plot, save_csv
 
 
 class QLearningAgent:
@@ -82,9 +83,8 @@ class QLearningAgent:
             self.min_learning_rate, self.learning_rate * self.learning_rate_decay
         )
 
-
-if __name__ == "__main__":
-    NUM_EPISODES = 1000
+# CODIGO A CAMBIAR PARA CADA ALGORITMO
+def create_agent(env, parameter_name: str, parameter_value) -> QLearningAgent:
     T_MAX = 25  # Max number of steps in an episode
 
     # Q-learning parameters
@@ -98,27 +98,46 @@ if __name__ == "__main__":
     LEARNING_RATE_DECAY = 0.99
     MIN_LEARNING_RATE = 0.01
 
+    parameters = {
+        "gamma": GAMMA,
+        "learning_rate": LEARNING_RATE,
+        "epsilon": EPSILON,
+        "t_max": T_MAX,
+        "min_learning_rate": MIN_LEARNING_RATE,
+        "min_epsilon": MIN_EPSILON,
+        "learning_rate_decay": LEARNING_RATE_DECAY,
+        "epsilon_decay": EPSILON_DECAY,
+    }
+
+    if parameter_name in parameters:
+        parameters[parameter_name] = parameter_value
+    else:
+        raise ValueError(f"Invalid parameter name: {parameter_name}")
+
+    agent = QLearningAgent(env, **parameters)
+    return agent
+
+
+if __name__ == "__main__":
+    if len(sys.argv) < 3:
+        print("Usage: python3 qlearning.py <parameter_name> <parameter_value1> <parameter_value2> ... <parameter_valueN>")
+        sys.exit(1)
+
+    program_name = sys.argv[0].split('.')[0]
+    parameter_name = sys.argv[1]
+    parameter_values = [float(value) for value in sys.argv[2:]]
+
     env = gym.make("Taxi-v3")
+
+    NUM_EPISODES = 20000
+    NUM_TEST_EPISODES = 1000
 
     average_time_per_episode_list = []
     total_training_time_list = []
     average_reward_obtained_test_list = []
 
-    parameter_name = "epsilon"
-    epsilons = [0.25, 0.5, 0.8, 1.0]
-
-    for epsilon in epsilons:
-        agent = QLearningAgent(
-            env,
-            gamma=GAMMA,
-            learning_rate=LEARNING_RATE,
-            epsilon=epsilon,
-            t_max=T_MAX,
-            min_learning_rate=MIN_LEARNING_RATE,
-            min_epsilon=MIN_EPSILON,
-            epsilon_decay=EPSILON_DECAY,
-            learning_rate_decay=LEARNING_RATE_DECAY,
-        )
+    for parameter_value in parameter_values:
+        agent = create_agent(env, parameter_name, parameter_value)
 
         total_training_time = 0
         time_per_episode = []
@@ -135,12 +154,11 @@ if __name__ == "__main__":
             total_training_time += elapsed_time
 
             rewards.append(reward)
-        # draw_rewards(rewards)
+        
+        save_rewards_plot(program_name, parameter_name, parameter_value, rewards)
 
-        print("hi")
         average_time_per_episode = np.mean(time_per_episode)
 
-        NUM_TEST_EPISODES = 1000
         test_rewards = []
         for i in range(NUM_TEST_EPISODES):
             reward = agent.test_episode()
@@ -156,7 +174,7 @@ if __name__ == "__main__":
             "average_time_per_episode": average_time_per_episode_list,
             "total_training_time": total_training_time_list,
             "average_reward_obtained_test": average_reward_obtained_test_list,
-            f"parameter_{parameter_name}": epsilons
+            f"{parameter_name}": parameter_values,
         }
     )
-    data.to_csv(f"./data_{parameter_name}.csv")
+    save_csv(program_name, parameter_name, data)
