@@ -5,7 +5,7 @@ import time
 import pandas as pd
 import sys
 
-from utils import save_rewards_plot, save_csv
+from utils import save_rewards_plot, save_csv, save_metric_plot
 
 
 class QLearningAgent:
@@ -127,9 +127,11 @@ if __name__ == "__main__":
     parameter_name = sys.argv[1]
     parameter_values = [float(value) for value in sys.argv[2:]]
 
+    print(f"----- Starting {program_name} with {parameter_name} = {parameter_values} -----")
+    
     env = gym.make("Taxi-v3")
 
-    NUM_EPISODES = 20000
+    NUM_EPISODES = 100
     NUM_TEST_EPISODES = 1000
 
     average_time_per_episode_list = []
@@ -137,6 +139,7 @@ if __name__ == "__main__":
     average_reward_obtained_test_list = []
 
     for parameter_value in parameter_values:
+        print(f"Training with {parameter_name} = {parameter_value}")
         agent = create_agent(env, parameter_name, parameter_value)
 
         total_training_time = 0
@@ -168,7 +171,7 @@ if __name__ == "__main__":
         average_time_per_episode_list.append(average_time_per_episode)
         total_training_time_list.append(total_training_time)
         average_reward_obtained_test_list.append(average_reward_obtained_test)
-
+        print(f"Finished training")
     data = pd.DataFrame(
         {
             "average_time_per_episode": average_time_per_episode_list,
@@ -178,3 +181,4 @@ if __name__ == "__main__":
         }
     )
     save_csv(program_name, parameter_name, data)
+    save_metric_plot(program_name, parameter_name, data)
