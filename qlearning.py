@@ -131,7 +131,7 @@ if __name__ == "__main__":
     
     env = gym.make("Taxi-v3")
 
-    NUM_EPISODES = 100
+    NUM_EPISODES = 20000
     NUM_TEST_EPISODES = 1000
 
     average_time_per_episode_list = []
