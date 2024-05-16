@@ -5,7 +5,6 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import collections
 
-
 class DirectEstimationAgent:
     def __init__(self, env, gamma, num_trajectories):
         self.env = env
@@ -68,7 +67,19 @@ class DirectEstimationAgent:
                 s, a) for a in range(self.env.action_space.n)]
             policy[s] = np.argmax(np.array(Q_values))
         return policy
+    
+    def test_episode(self) -> int:
+        state, _ = self.env.reset()
+        t = 0
+        total_reward = 0
 
+        is_done = False
+        for i in range(T_MAX):
+            action = self.select_action(state)
+            state, reward, is_done, truncated, info = self.env.step(action)
+            total_reward += reward
+            t += 1
+        return total_reward
 
 def check_improvements():
     reward_test = 0.0
@@ -86,7 +97,7 @@ def check_improvements():
     reward_avg = reward_test / NUM_EPISODES
     return reward_avg
 
-
+    
 def train(agent):
     rewards = []
     max_diffs = []
@@ -108,7 +119,6 @@ def train(agent):
 
     return rewards, max_diffs
 
-
 def draw_rewards(rewards, type):
     data = pd.DataFrame(
         {'Episode': range(1, len(rewards) + 1), 'Reward': rewards})
@@ -120,24 +130,19 @@ def draw_rewards(rewards, type):
     plt.ylabel('Reward')
     plt.grid(True)
     plt.tight_layout()
-    if type == 'rewards':
-        plt.savefig('rewards_plot.png')
-    else:
-        plt.savefig('mean_plot.png')
-
+    plt.savefig('rewards_plot.png')
 
 if __name__ == "__main__":
 
-    NUM_EPISODES = 50
-    SLIPPERY = False
-    T_MAX = 30  # Max number of steps/episode
+    NUM_EPISODES = 100
+    T_MAX = 25  # Maxnumber of steps/episode
 
     GAMMA = 0.95  # Discount factor
-    REWARD_THRESHOLD = 0.9
+    REWARD_THRESHOLD = 4 #0.9
 
     # env = gym.make("Taxi-v3", render_mode="human")
     env = gym.make("Taxi-v3")
-    agent = DirectEstimationAgent(env, gamma=GAMMA, num_trajectories=20)
+    agent = DirectEstimationAgent(env, gamma=GAMMA, num_trajectories=200)
     train(agent)
 
     is_done = False
@@ -157,4 +162,12 @@ if __name__ == "__main__":
     draw_rewards(rewards, 'rewards')
     mean_rewards = np.mean(rewards, axis=0)
     print(f"Mean reward: {mean_rewards:.2f}")
+
+    NUM_TEST_EPISODES = 200
+    test_rewards = []
+    for i in range(NUM_TEST_EPISODES):
+        print(f"Test episode {i}")
+        reward = agent.test_episode()
+        test_rewards.append(reward)
+    print (f"Average reward over {NUM_TEST_EPISODES} test episodes: {np.mean(test_rewards)}")
     # draw_rewards(mean_rewards, 'mean')
