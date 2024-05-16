@@ -1,6 +1,8 @@
 import gymnasium as gym
 import numpy as np
 import random
+import time
+import pandas as pd
 
 from utils import draw_rewards, print_policy_for_taxi_env
 
@@ -15,8 +17,8 @@ class QLearningAgent:
         t_max: int,
         min_learning_rate: float,
         min_epsilon: float,
-        epsilon_decay: float,
         learning_rate_decay: float,
+        epsilon_decay: float,
     ):
         self.env = env
         self.Q = np.zeros((env.observation_space.n, env.action_space.n))
@@ -61,13 +63,12 @@ class QLearningAgent:
         total_reward = 0
 
         is_done = False
-        while not is_done:
+        while not is_done and t < self.t_max:
             action = self.select_action(state, False)
             state, reward, is_done, truncated, info = self.env.step(action)
             total_reward += reward
             t += 1
         return total_reward
-
 
     def policy(self):
         policy = np.zeros(env.observation_space.n)
@@ -83,44 +84,79 @@ class QLearningAgent:
 
 
 if __name__ == "__main__":
-    NUM_EPISODES = 20000
+    NUM_EPISODES = 1000
     T_MAX = 25  # Max number of steps in an episode
 
     # Q-learning parameters
     GAMMA = 0.95  # Discount factor (gamma): how much we value future rewards
 
     EPSILON = 1.0  # Exploration probability at the start of the training
-    EPSILON_DECAY = 0.995
-    MIN_EPSILON = 0.1
+    EPSILON_DECAY = 0.99
+    MIN_EPSILON = 0.001
 
-    LEARNING_RATE = 0.05
-    LEARNING_RATE_DECAY = 1.0
+    LEARNING_RATE = 0.3
+    LEARNING_RATE_DECAY = 0.99
     MIN_LEARNING_RATE = 0.01
 
     env = gym.make("Taxi-v3")
 
-    agent = QLearningAgent(
-        env,
-        gamma=GAMMA,
-        learning_rate=LEARNING_RATE,
-        epsilon=EPSILON,
-        t_max=T_MAX,
-        min_learning_rate=MIN_LEARNING_RATE,
-        min_epsilon=MIN_EPSILON,
-        epsilon_decay=EPSILON_DECAY,
-        learning_rate_decay=LEARNING_RATE_DECAY,
+    average_time_per_episode_list = []
+    total_training_time_list = []
+    average_reward_obtained_test_list = []
+
+    parameter_name = "epsilon"
+    epsilons = [0.25, 0.5, 0.8, 1.0]
+
+    for epsilon in epsilons:
+        agent = QLearningAgent(
+            env,
+            gamma=GAMMA,
+            learning_rate=LEARNING_RATE,
+            epsilon=epsilon,
+            t_max=T_MAX,
+            min_learning_rate=MIN_LEARNING_RATE,
+            min_epsilon=MIN_EPSILON,
+            epsilon_decay=EPSILON_DECAY,
+            learning_rate_decay=LEARNING_RATE_DECAY,
+        )
+
+        total_training_time = 0
+        time_per_episode = []
+        rewards = []
+        for i in range(NUM_EPISODES):
+            start_time = time.time()
+
+            reward = agent.learn_from_episode()
+
+            end_time = time.time()
+            elapsed_time = end_time - start_time
+
+            time_per_episode.append(elapsed_time)
+            total_training_time += elapsed_time
+
+            rewards.append(reward)
+        # draw_rewards(rewards)
+
+        print("hi")
+        average_time_per_episode = np.mean(time_per_episode)
+
+        NUM_TEST_EPISODES = 1000
+        test_rewards = []
+        for i in range(NUM_TEST_EPISODES):
+            reward = agent.test_episode()
+            test_rewards.append(reward)
+        average_reward_obtained_test = np.mean(test_rewards)
+
+        average_time_per_episode_list.append(average_time_per_episode)
+        total_training_time_list.append(total_training_time)
+        average_reward_obtained_test_list.append(average_reward_obtained_test)
+
+    data = pd.DataFrame(
+        {
+            "average_time_per_episode": average_time_per_episode_list,
+            "total_training_time": total_training_time_list,
+            "average_reward_obtained_test": average_reward_obtained_test_list,
+            f"parameter_{parameter_name}": epsilons
+        }
     )
-    rewards = []
-    for i in range(NUM_EPISODES):
-        reward = agent.learn_from_episode()
-        print(f"Episode {i} got reward: {str(reward)}")
-        rewards.append(reward)
-    draw_rewards(rewards)
-
-    NUM_TEST_EPISODES = 1000
-    test_rewards = []
-    for i in range(NUM_TEST_EPISODES):
-        reward = agent.test_episode()
-        test_rewards.append(reward)
-    print (f"Average reward over {NUM_TEST_EPISODES} test episodes: {np.mean(test_rewards)}")
-
+    data.to_csv(f"./data_{parameter_name}.csv")
