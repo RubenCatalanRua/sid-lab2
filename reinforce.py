@@ -88,7 +88,7 @@ def create_agent(env, parameter_name: str, parameter_value) -> ReinforceAgent:
     # Reinforce parameters
     GAMMA = 0.95  # Discount factor (gamma): how much we value future rewards
     LEARNING_RATE = 0.3
-    LEARNING_RATE_DECAY = 1.0
+    LEARNING_RATE_DECAY = 0.9
     MIN_LEARNING_RATE = 0.01
 
     parameters = {
