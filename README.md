@@ -39,6 +39,7 @@ Where parameter_name can be:
 Default values of the parameters are:
 - GAMMA = 0.95
 - NUM_TRAJECTORIES = 1000
+- T_MAX = 25
 - REWARD_THRESHOLD = 0.9
 - NUM_EPISODES = 100
 
@@ -56,5 +57,23 @@ Default values of the parameters are:
 - REWARD_THRESHOLD = 3
 - NUM_EPISODES = 20000 (Non changeable)
 - NUM_TEST_EPISODES = 1000 (Non changeable)
+
+### Usage of Reinforce program
+To experiment with a parameter and different values for it, execute:
+```
+python3 reinforce.py <parameter_name> <parameter_value1> <parameter_value2> ... <parameter_valueN>
+```
+Where parameter_name can be:
+- lr_decay
+- gamma
+- learning_rate
+
+Default values of the parameters are:
+- GAMMA = 0.95
+- LEARNING_RATE = 0.3
+- LEARNING_RATE_DECAY = 0.9
+- NUM_EPISODES = 20000
+- T_MAX = 25
+- NUM_TEST_EPISODES = 1000
 
 # sid-lab2
