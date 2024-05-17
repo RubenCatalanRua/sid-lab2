@@ -2,9 +2,9 @@
 
 ## Usage of programs
 ```
-NOTE: Only one parameter can be experimented with at a time, and the parameter values are floats or integers
+NOTE: Only one parameter can be experimented with at a time, and the parameter values are floats or integers. Graphics will be available in the folder 'data' after the program is executed.
 	  
-	  If you execute any of the programs incorrectly, an USAGE message will pop out, showing a correct input
+If you execute any of the programs incorrectly, an USAGE message will pop out, showing a correct input
 ```
 
 
@@ -26,10 +26,10 @@ Default values of the parameters are:
 - MIN_EPSILON = 0.001
 - MIN_LEARNING_RATE = 0.01
 
-### Usage of Direct Estimation (modelBased) program
+### Usage of Direct Estimation program
 To experiment with a parameter and different values for it, execute:
 ```
-python3 modelbased.py <parameter_name> <parameter_value1> <parameter_value2> ... <parameter_valueN>
+python3 direct_estimation.py <parameter_name> <parameter_value1> <parameter_value2> ... <parameter_valueN>
 ```
 Where parameter_name can be:
 - gamma
