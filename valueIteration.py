@@ -3,14 +3,9 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 import pandas as pd
 import numpy as np
-
-
-T_MAX = 15
-NUM_EPISODES = 5
-GAMMA = 0.95
-REWARD_THRESHOLD = 0.9
-
-env = gym.make("Taxi-v3", render_mode="human")
+import time
+import sys
+from utils import save_rewards_plot, save_csv, save_metric_plot
 
 
 def test_episode(agent, env):
@@ -23,21 +18,6 @@ def test_episode(agent, env):
         state, reward, is_done, truncated, info = env.step(action)
         t += 1
     return state, reward, is_done, truncated, info
-
-
-def draw_rewards(rewards):
-    data = pd.DataFrame(
-        {'Episode': range(1, len(rewards) + 1), 'Reward': rewards})
-    plt.figure(figsize=(10, 6))
-    sns.lineplot(x='Episode', y='Reward', data=data)
-
-    plt.title('Rewards Over Episodes')
-    plt.xlabel('Episode')
-    plt.ylabel('Reward')
-    plt.grid(True)
-    plt.tight_layout()
-
-    plt.show()
 
 
 class ValueIterationAgent:
@@ -83,60 +63,134 @@ class ValueIterationAgent:
         return policy
 
 
-
-
 def check_improvements():
     reward_test = 0.0
+    time_per_episode = []
+    total_training_time = 0
     for i in range(NUM_EPISODES):
+        start_time = time.time()
         total_reward = 0.0
         state, _ = env.reset()
         for i in range(T_MAX):
             action = agent.select_action(state)
             new_state, new_reward, is_done, truncated, _ = env.step(action)
             total_reward += new_reward
-            if is_done: 
+            if is_done:
                 break
             state = new_state
         reward_test += total_reward
-    reward_avg = reward_test / NUM_EPISODES
-    return reward_avg
+        end_time = time.time()
+        elapsed_time = end_time - start_time
+        time_per_episode.append(elapsed_time)
+        total_training_time += elapsed_time
 
-def train(agent): 
+    reward_avg = reward_test / NUM_EPISODES
+    return reward_avg, time_per_episode, total_training_time
+
+
+def train(agent):
     rewards = []
     max_diffs = []
     t = 0
     best_reward = 0.0
-     
+    total_training_time = 0
+    time_per_episode = []
+
     while best_reward < REWARD_THRESHOLD:
         _, max_diff = agent.value_iteration()
         max_diffs.append(max_diff)
         print("After value iteration, max_diff = " + str(max_diff))
         t += 1
-        reward_test = check_improvements()
+        reward_test,time_test,training_time_test = check_improvements()
         rewards.append(reward_test)
-               
+        total_training_time += training_time_test
+        time_per_episode += time_test
         if reward_test > best_reward:
-            print(f"Best reward updated {reward_test:.2f} at iteration {t}") 
             best_reward = reward_test
-    
-    return rewards, max_diffs
+
+    return rewards, max_diffs, time_per_episode, total_training_time
 
 
-agent = ValueIterationAgent(env, gamma=GAMMA)
-rewards, max_diffs = train(agent)
+# Fixed variables
+T_MAX = 25                  # Max steps over an episode
+NUM_EPISODES = 20000        # The total number of episodes
+# Number of test episodes (we calculate the median of its results)
+NUM_TEST_EPISODES = 2000
 
-is_done = False
-rewards = []
-for n_ep in range(NUM_EPISODES):
-    state, _ = env.reset()
-    print('Episode: ', n_ep)
-    total_reward = 0
-    for i in range(T_MAX):
-        action = agent.select_action(state)
-        state, reward, is_done, truncated, _ = env.step(action)
-        total_reward = total_reward + reward
-        env.render()
-        if is_done:
-            break
-    rewards.append(total_reward)
-draw_rewards(rewards)
+
+# Tested variables (these are default values, arguments will override them)
+GAMMA = 0.9                 # How much we value future rewards
+# Instead of testing for convergence, we use a reward threshold which we must overcome
+REWARD_THRESHOLD = 3
+
+# No render_mode, for faster execution
+env = gym.make("Taxi-v3")
+
+if __name__ == "__main__":
+    if len(sys.argv) < 3:
+        print("Usage: python3 valueIteration.py <parameter_name> <parameter_value1> <parameter_value2> ... <parameter_valueN>")
+        print("where <parameter_name> == (GAMMA{0..1} | REWARD_THRESHOLD)")
+        sys.exit(1)
+    if sys.argv[1] not in ["GAMMA", "REWARD_THRESHOLD"]:
+        print("<parameter_name> == (GAMMA{0..1} | REWARD_THRESHOLD)")
+        sys.exit(1)
+
+    program_name = sys.argv[0].split('.')[0]
+    parameter_name = sys.argv[1]
+    parameter_values = [float(value) for value in sys.argv[2:]]   
+
+    average_time_per_episode_list = []
+    total_training_time_list = []
+    average_reward_obtained_test_list = []
+
+
+    print(f"----- Starting {program_name} with {parameter_name} = {parameter_values} -----")
+
+
+    for parameter_value in parameter_values:
+        print(f"Training with {parameter_name} = {parameter_value}")
+
+        if parameter_name == "GAMMA": GAMMA = parameter_value
+        else: REWARD_THRESHOLD = parameter_value
+
+        is_done = False
+        rewards = []
+
+        # Creamos el agente
+        agent = ValueIterationAgent(env, gamma=GAMMA)
+
+        rewards, _, time_per_episode, total_training_time = train(agent)
+
+        save_rewards_plot(program_name, parameter_name, parameter_value, rewards)
+
+        average_time_per_episode = np.mean(time_per_episode)
+
+        test_rewards = []
+        for n_test in range(NUM_TEST_EPISODES):
+                state, _ = env.reset()
+                print('Episode_test: ', n_test)
+                total_reward = 0
+                for i in range(T_MAX):
+                    action = agent.select_action(state)
+                    state, reward, is_done, truncated, _ = env.step(action)
+                    total_reward = total_reward + reward
+                    env.render()
+                    if is_done:
+                        break
+                test_rewards.append(total_reward)
+
+        average_reward_obtained_test = np.mean(test_rewards)
+        average_time_per_episode_list.append(average_time_per_episode)
+        total_training_time_list.append(total_training_time)
+        average_reward_obtained_test_list.append(average_reward_obtained_test)
+        print(f"Finished training")
+    data = pd.DataFrame(
+        {
+            "average_time_per_episode": average_time_per_episode_list,
+            "total_training_time": total_training_time_list,
+            "average_reward_obtained_test": average_reward_obtained_test_list,
+            f"{parameter_name}": parameter_values,
+        }
+    )
+    save_csv(program_name, parameter_name, data)
+    save_metric_plot(program_name, parameter_name, data)
