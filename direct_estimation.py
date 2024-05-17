@@ -114,7 +114,6 @@ def train(agent):
     while best_reward < agent.reward_threshold:
         _, max_diff = agent.value_iteration()
         max_diffs.append(max_diff)
-        # print("After value iteration, max_diff = " +str(max_diff))
         t += 1
         reward_test = check_improvements()
         rewards.append(reward_test)
@@ -129,7 +128,7 @@ def train(agent):
 def create_agent(env, parameter_name: str, parameter_value) -> DirectEstimationAgent:
     T_MAX = 25  # Max number of steps in an episode
 
-    # Model based parameters
+    # Parameters
     GAMMA = 0.95  # Discount factor (gamma): how much we value future rewards
     NUM_TRAJECTORIES = 1000
     REWARD_THRESHOLD = 0.9
@@ -152,7 +151,7 @@ def create_agent(env, parameter_name: str, parameter_value) -> DirectEstimationA
 
 if __name__ == "__main__":
     if len(sys.argv) < 3:
-        print("Usage: python3 modelBased.py <parameter_name> <parameter_value1> <parameter_value2> ... <parameter_valueN>")
+        print("Usage: python3 direct_estimation.py <parameter_name> <parameter_value1> <parameter_value2> ... <parameter_valueN>")
         sys.exit(1)
 
     program_name = sys.argv[0].split('.')[0]
