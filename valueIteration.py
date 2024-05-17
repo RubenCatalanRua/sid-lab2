@@ -115,7 +115,7 @@ def train(agent):
 T_MAX = 25                  # Max steps over an episode
 NUM_EPISODES = 20000        # The total number of episodes
 # Number of test episodes (we calculate the median of its results)
-NUM_TEST_EPISODES = 2000
+NUM_TEST_EPISODES = 1000
 
 
 # Tested variables (these are default values, arguments will override them)
