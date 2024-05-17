@@ -9,7 +9,7 @@ import sys
 from utils import draw_rewards,save_rewards_plot, save_csv
 
 class DirectEstimationAgent:
-    def __init__(self, env, gamma, num_trajectories, reward_threshold, t_max:int):
+    def __init__(self, env, gamma, num_trajectories, t_max:int,reward_threshold):
         self.env = env
         self.state, _ = self.env.reset()
         self.rewards = collections.defaultdict(float)
@@ -21,7 +21,7 @@ class DirectEstimationAgent:
         self.t_max = t_max
 
     def play_n_random_steps(self, count):
-        for _ in range(count):
+        for _ in range(int(count)):
             action = self.env.action_space.sample()
             new_state, reward, is_done, truncated, _ = self.env.step(action)
             self.rewards[(self.state, action, new_state)] = reward
@@ -143,7 +143,7 @@ def create_agent(env, parameter_name: str, parameter_value) -> DirectEstimationA
 
     # Model based parameters
     GAMMA = 0.95  # Discount factor (gamma): how much we value future rewards
-    NUM_TRAJECTORIES = 10
+    NUM_TRAJECTORIES = 100
     REWARD_THRESHOLD = 0.9 
     
     parameters = {
@@ -172,8 +172,8 @@ if __name__ == "__main__":
 
     env = gym.make("Taxi-v3")
 
-    NUM_EPISODES = 1
-    NUM_TEST_EPISODES = 1
+    NUM_EPISODES = 100
+    NUM_TEST_EPISODES = 100
 
     average_time_per_episode_list = []
     total_training_time_list = []
