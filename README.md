@@ -3,7 +3,10 @@
 ## Usage of programs
 ```
 NOTE: Only one parameter can be experimented with at a time, and the parameter values are floats or integers
+	  
+	  If you execute any of the programs incorrectly, an USAGE message will pop out, showing a correct input
 ```
+
 
 ### Usage of Q-LEARNING program
 To experiment with a parameter and different values for it, execute:
@@ -45,12 +48,13 @@ To experiment with a parameter and different values for it, execute:
 python3 valueiteration.py <parameter_name> <parameter_value1> <parameter_value2> ... <parameter_valueN>
 ```
 Where parameter_name can be:
-- gamma
-- reward_threshold
+- GAMMA
+- REWARD_THRESHOLD
 
 Default values of the parameters are:
 - GAMMA = 0.9
 - REWARD_THRESHOLD = 3
-- NUM_EPISODES = 20000
+- NUM_EPISODES = 20000 (Non changeable)
+- NUM_TEST_EPISODES = 1000 (Non changeable)
 
 # sid-lab2
