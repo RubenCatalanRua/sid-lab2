@@ -1,7 +1,9 @@
 # Usage
 
 ## Usage of programs
-
+```
+NOTE: Only one parameter can be experimented with at a time, and the parameter values are floats or integers
+```
 
 ### Usage of Q-LEARNING program
 To experiment with a parameter and different values for it, execute:
@@ -15,24 +17,40 @@ Where parameter_name can be:
 - learning_rate
 - learning_rate_decay
 
-And parameter values are floats or integers.
-
-NOTE: Only one parameter can be experimented with at a time, and all other
-parameters will remain constant with a predefined value. In this case:
-- GAMMA = 0.95
-- EPSILON = 1.0
-- EPSILON_DECAY = 0.99
-- LEARNING_RATE = 0.3
-- LEARNING_RATE_DECAY = 0.99
-
-While these others are not supposed to be modified:
+Default values of the parameters are:
 - NUM_EPISODES = 20000
 - T_MAX = 20
 - MIN_EPSILON = 0.001
 - MIN_LEARNING_RATE = 0.01
 
-### Direct Estimation
+### Usage of Direct Estimation (modelBased) program
+To experiment with a parameter and different values for it, execute:
 ```
-python3 direct_estimation.py
+python3 modelbased.py <parameter_name> <parameter_value1> <parameter_value2> ... <parameter_valueN>
 ```
+Where parameter_name can be:
+- gamma
+- num_trajectories
+- reward_threshold
+
+Default values of the parameters are:
+- GAMMA = 0.95
+- NUM_TRAJECTORIES = 1000
+- REWARD_THRESHOLD = 0.9
+- NUM_EPISODES = 100
+
+### Usage of Value Iteration program
+To experiment with a parameter and different values for it, execute:
+```
+python3 valueiteration.py <parameter_name> <parameter_value1> <parameter_value2> ... <parameter_valueN>
+```
+Where parameter_name can be:
+- gamma
+- reward_threshold
+
+Default values of the parameters are:
+- GAMMA = 0.9
+- REWARD_THRESHOLD = 3
+- NUM_EPISODES = 20000
+
 # sid-lab2

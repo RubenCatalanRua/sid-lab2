@@ -6,10 +6,11 @@ import pandas as pd
 import collections
 import time
 import sys
-from utils import draw_rewards,save_rewards_plot, save_csv
+from utils import save_metric_plot, save_rewards_plot, save_csv
+
 
 class DirectEstimationAgent:
-    def __init__(self, env, gamma, num_trajectories, t_max:int,reward_threshold):
+    def __init__(self, env, gamma, num_trajectories, t_max: int, reward_threshold):
         self.env = env
         self.state, _ = self.env.reset()
         self.rewards = collections.defaultdict(float)
@@ -72,7 +73,7 @@ class DirectEstimationAgent:
                 s, a) for a in range(self.env.action_space.n)]
             policy[s] = np.argmax(np.array(Q_values))
         return policy
-    
+
     def test_episode(self) -> int:
         state, _ = self.env.reset()
         t = 0
@@ -85,6 +86,7 @@ class DirectEstimationAgent:
             total_reward += reward
             t += 1
         return total_reward
+
 
 def check_improvements():
     reward_test = 0.0
@@ -102,7 +104,7 @@ def check_improvements():
     reward_avg = reward_test / NUM_EPISODES
     return reward_avg
 
-    
+
 def train(agent):
     rewards = []
     max_diffs = []
@@ -123,29 +125,15 @@ def train(agent):
 
     return rewards, max_diffs
 
-# def draw_rewards(rewards, type):
-#     data = pd.DataFrame(
-#         {'Episode': range(1, len(rewards) + 1), 'Reward': rewards})
-#     plt.figure(figsize=(10, 6))
-#     sns.lineplot(x='Episode', y='Reward', data=data)
-
-#     plt.title('Rewards Over Episodes')
-#     plt.xlabel('Episode')
-#     plt.ylabel('Reward')
-#     plt.grid(True)
-#     plt.tight_layout()
-#     plt.savefig('rewards_plot.png')
-
-
 # CODIGO A CAMBIAR PARA CADA ALGORITMO
 def create_agent(env, parameter_name: str, parameter_value) -> DirectEstimationAgent:
     T_MAX = 25  # Max number of steps in an episode
 
     # Model based parameters
     GAMMA = 0.95  # Discount factor (gamma): how much we value future rewards
-    NUM_TRAJECTORIES = 100
-    REWARD_THRESHOLD = 0.9 
-    
+    NUM_TRAJECTORIES = 1000
+    REWARD_THRESHOLD = 0.9
+
     parameters = {
         "gamma": GAMMA,
         "num_trajectories": NUM_TRAJECTORIES,
@@ -161,6 +149,7 @@ def create_agent(env, parameter_name: str, parameter_value) -> DirectEstimationA
     agent = DirectEstimationAgent(env, **parameters)
     return agent
 
+
 if __name__ == "__main__":
     if len(sys.argv) < 3:
         print("Usage: python3 modelBased.py <parameter_name> <parameter_value1> <parameter_value2> ... <parameter_valueN>")
@@ -169,6 +158,8 @@ if __name__ == "__main__":
     program_name = sys.argv[0].split('.')[0]
     parameter_name = sys.argv[1]
     parameter_values = [float(value) for value in sys.argv[2:]]
+    print(
+        f"----- Starting {program_name} with {parameter_name} = {parameter_values} -----")
 
     env = gym.make("Taxi-v3")
 
@@ -188,8 +179,8 @@ if __name__ == "__main__":
         for i in range(NUM_EPISODES):
             start_time = time.time()
 
-            reward,_ = train(agent)
-            
+            reward, _ = train(agent)
+
             end_time = time.time()
             elapsed_time = end_time - start_time
 
@@ -197,9 +188,8 @@ if __name__ == "__main__":
             total_training_time += elapsed_time
 
             rewards.append(np.mean(reward))
-        # print(rewards)
-        # draw_rewards(rewards)
-        save_rewards_plot(program_name, parameter_name, parameter_value, rewards)
+        save_rewards_plot(program_name, parameter_name,
+                          parameter_value, rewards)
 
         average_time_per_episode = np.mean(time_per_episode)
 
@@ -222,40 +212,7 @@ if __name__ == "__main__":
         }
     )
     save_csv(program_name, parameter_name, data)
-
-
-
-
-
-
-    # # env = gym.make("Taxi-v3", render_mode="human")
-    # env = gym.make("Taxi-v3")
-    # agent = DirectEstimationAgent(env, gamma=GAMMA, num_trajectories=25)
-    # train(agent)
-
-    # is_done = False
-    # rewards = []
-    # for n_ep in range(NUM_EPISODES):
-    #     state, _ = env.reset()
-    #     print('Episode: ', n_ep)
-    #     total_reward = 0
-    #     for i in range(T_MAX):
-    #         action = agent.select_action(state)
-    #         state, reward, is_done, truncated, _ = env.step(action)
-    #         total_reward = total_reward + reward
-    #         env.render()
-    #         if is_done:
-    #             break
-    #     rewards.append(total_reward)
-    # draw_rewards(rewards, 'rewards')
-    # mean_rewards = np.mean(rewards, axis=0)
-    # print(f"Mean reward: {mean_rewards:.2f}")
-
-    # NUM_TEST_EPISODES = 1000
-    # test_rewards = []
-    # for i in range(NUM_TEST_EPISODES):
-    #     print(f"Test episode {i}")
-    #     reward = agent.test_episode()
-    #     test_rewards.append(reward)
-    # print (f"Average reward over {NUM_TEST_EPISODES} test episodes: {np.mean(test_rewards)}")
-    # # draw_rewards(mean_rewards, 'mean')
+    save_metric_plot(program_name, parameter_name, data)
+    print(
+        f"----- Finished {program_name} with {parameter_name} = {parameter_values} -----")
+    print(data)
